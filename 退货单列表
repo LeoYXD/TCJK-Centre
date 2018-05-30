@@ -1,0 +1,51 @@
+SELECT
+	ret.`order_code` AS '订单编号',
+	ret.`order_id` AS '订单ID',
+	ret.`order_source` AS '订单来源',
+	ret.`return_code` AS '退货单编号',
+	ret.`return_source` AS '退货单来源',
+	channel.`channel_name` AS '退货单渠道',
+	ret.`user_id` AS '用户ID',
+	ret.`depot_code` AS '门店编号',
+CASE
+	ret.`audit_state` 
+	WHEN 'for_audit' THEN
+	'待审核' 
+	WHEN 'pass' THEN
+	'审核通过' 
+	WHEN 'reject' THEN
+	'审核驳回' 
+	END AS '退货审核状态',
+CASE
+	ret.`return_state` 
+	WHEN 'begin' THEN
+	'新退货单' 
+	WHEN 'audited' THEN
+	'已审核' 
+	WHEN 'returning' THEN
+	'退货中' 
+	WHEN 'finished' THEN
+	'退货入库完成' 
+	END AS '退货状态',
+CASE
+	ret.`cancel_type` 
+	WHEN 'none' THEN
+	'未取消' 
+	WHEN 'canceled' THEN
+	'用户取消' 
+	WHEN 'expired' THEN
+	'过期' 
+	WHEN 'closed' THEN
+	'后台关闭' 
+	END AS '取消标识',
+	ret.`receiver` AS '退货收货确认人',
+	ret.`receive_time` AS '收货确认时间',
+	ret.`return_amount` AS '申请退款金额',
+	ret.`refund_amount` AS '实际退款金额',
+	ret.`self_remark` AS '客服备注' 
+FROM
+	`oms_return` AS ret
+	LEFT JOIN `oms_channel` AS channel ON channel.`channel` = ret.`channel` 
+WHERE
+	ret.`create_timestamp` >= '2018-05-29 00:00:00' 
+	AND ret.`create_timestamp` <= '2018-05-29 23:59:59';
