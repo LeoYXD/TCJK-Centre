@@ -1,0 +1,86 @@
+SELECT
+	ord.`order_code` AS '订单编号',
+	ord.`source_order_code` AS '原订单号',
+CASE
+	ord.`state` 
+	WHEN '0' THEN
+	'新订单' 
+	WHEN '5' THEN
+	'已分单' 
+	WHEN '10' THEN
+	'已打单' 
+	WHEN '15' THEN
+	'已出库' 
+	WHEN '50' THEN
+	'已完成' 
+	END AS '订单状态',
+	ord.`order_source` AS '订单来源',
+	ord.`depot_code` AS '门店编码',
+	ord.`depot_name` AS '门店名称',
+	ord.`create_timestamp` AS '创建时间',
+	ord.`sale_time` AS '销售时间',
+	con.`address` AS '收货人地址',
+	con.`name` AS '收货人名称',
+	con.`mobile` AS '收货人电话',
+	ord.`deliveryman` AS '配送员名称',
+CASE
+	ord.`delivery_state` 
+	WHEN '0' THEN
+	'待出库' 
+	WHEN '5' THEN
+	'待自提' 
+	WHEN '10' THEN
+	'配送中' 
+	WHEN '15' THEN
+	'已签收' 
+	WHEN '20' THEN
+	'部分签收' 
+	WHEN '25' THEN
+	'拒收' 
+	END AS '配送状态',
+CASE
+	ord.`cancel_type` 
+	WHEN 'none' THEN
+	'未取消' 
+	WHEN 'canceled' THEN
+	'用户取消' 
+	WHEN 'expired' THEN
+	'过期' 
+	WHEN 'closed' THEN
+	'后台关闭' 
+	WHEN 'splited' THEN
+	'已被分拆(原单关闭)' 
+	END AS '订单取消标识',
+	ord.`operator` AS '下单员工号',
+	ord.`remark` AS '用户备注',
+	ord.`self_remark` AS '商户自备注(一般用于客服)',
+	ord.`user_id` AS '会员ID',
+	ord.`user_name` AS '用户名称',
+	ord.`user_mobile` AS '用户电话',
+	ord.`user_account` AS '用户账户',
+	ord.`user_level` AS '用户级别',
+	ord.`order_amount` AS '订单商品金额(商品计算折让之后的金额)',
+	ord.`discount_amount` AS '商品折让总金额',
+	channel.`channel_name` AS '订单渠道',
+	member.`create_timestamp` AS '会员创建时间',
+CASE
+	ord.`delivery_type` 
+	WHEN 'self_now' THEN
+	'闪送' 
+	WHEN 'self_normal' THEN
+	'同城配送' 
+	WHEN 'self_appointment' THEN
+	'预约送' 
+	WHEN 'take_their' THEN
+	'自提' 
+	WHEN 'thrid_party' THEN
+	'第三方物流' 
+	END AS '订单配送方式' 
+FROM
+	`oms`.`oms_order` AS ord
+	LEFT JOIN `oms_consignee` AS con ON ord.`consignee_id` = con.`id`
+	LEFT JOIN `oms_channel` AS channel ON ord.`channel` = channel.`channel`
+	LEFT JOIN `member`.`member` AS member ON ord.`user_id` = member.`id` 
+WHERE
+	ord.`sale_time` >= '2018-05-29 00:00:00' 
+	AND ord.`sale_time` <= '2018-05-29 23:59:59'
