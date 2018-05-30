@@ -1,0 +1,38 @@
+SELECT
+	ord.`order_code` AS '订单编号',
+	ord.`order_source` AS '订单来源',
+	ord.`depot_code` AS '门店编码',
+	ord.`depot_name` AS '门店名称',
+	ord.`sale_time` AS '销售时间',
+	item.`product_code` AS '商品编号',
+	item.`product_name` AS '商品名称',
+	item.`quantity` AS '购买数量',
+	item.`receive_quantity` AS '已签收数量',
+	item.`scale` AS '购买规格',
+	item.`final_price` AS '最终售价',
+	item.`market_price` AS '标价',
+	item.`price` AS '原价',
+	item.`category_code` AS '商品分类编号',
+	channel.`channel_name` AS '订单渠道',
+	ord.`operator` AS '下单员工号',
+CASE
+	ord.`delivery_state` 
+	WHEN '0' THEN
+	'待出库' 
+	WHEN '5' THEN
+	'待自提' 
+	WHEN '10' THEN
+	'配送中' 
+	WHEN '15' THEN
+	'已签收' 
+	WHEN '20' THEN
+	'部分签收' 
+	WHEN '25' THEN
+	'拒收' 
+	END AS '配送状态' 
+FROM
+	`oms_order_item` AS item
+	LEFT JOIN `oms_order` AS ord ON item.`order_id` = ord.`id`
+	LEFT JOIN `oms_channel` AS channel ON ord.`channel` = channel.`channel` 
+WHERE
+	item.`order_id` IN ( SELECT ord.`id` FROM `oms`.`oms_order` AS ord WHERE ord.`sale_time` >= '2018-05-29 00:00:00' AND ord.`sale_time` <= '2018-05-29 23:59:59' )
