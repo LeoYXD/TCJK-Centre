@@ -1,0 +1,16 @@
+SELECT
+	ret.`order_code` AS '订单编号',
+	ret.`order_id` AS '订单ID',
+	ret.`return_code` AS '退货单编号',
+	ret_item.`product_code` AS '商品编号',
+	ret_item.`product_name` AS '商品名称',
+	ret_item.`quantity` AS '退货数量',
+	ret_item.`final_price` AS '最终价格',
+	channel.`channel_name` AS '订单渠道' 
+FROM
+	`oms_return_item` AS ret_item
+	LEFT JOIN `oms_return` AS ret ON ret.`id` = ret_item.`returns_id`
+	LEFT JOIN `oms_order` AS ord ON ret.`order_id` = ord.`id`
+	LEFT JOIN `oms_channel` AS channel ON ord.`channel` = channel.`channel` 
+WHERE
+	ret_item.`returns_id` IN ( SELECT `id` FROM `oms_return` WHERE `create_timestamp` >= '2018-05-29 00:00:00' AND `create_timestamp` <= '2018-05-29 23:59:59' )
