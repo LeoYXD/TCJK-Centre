@@ -1,0 +1,17 @@
+select 
+case t1.channel when '00' then (case t1.delivery_type when 'self_now' then t1.salesperson else t1.deliveryman end) else t1.deliveryman end  as '店员ID',
+case t1.channel when '00' then (case t1.delivery_type when 'self_now' then (select name from depot.tb_depot_employee where employee_code = t1.salesperson and t1.create_timestamp BETWEEN begin_time and end_time) else (select name from depot.tb_depot_employee where employee_code = t1.deliveryman and t1.create_timestamp BETWEEN begin_time and end_time) end) else (select name from depot.tb_depot_employee where employee_code = t1.deliveryman and t1.create_timestamp BETWEEN begin_time and end_time) end as '店员姓名',
+(select name from depot.tb_depot where depot_code = t1.depot_code) '门店',
+t1.depot_code as '门店编码',
+case t1.channel when '00' then '门店POS' when '01' then 'APP' when '02' then '微商城' when '03' then '客服中心' when '04' then '美团外卖' when '05' then '百度外卖' when '06' then '百度糯米' else t1.channel end as '渠道',
+t1.order_code as '订单号',
+FORMAT(t1.order_amount/100,2) as '订单金额',
+(select account from member.member where id = t1.user_id) '会员账号', 
+t1.create_timestamp as '订单日期',
+case t1.state when '0' then '新订单' when '5' then '已分单' when '10' then '已打单' when '15' then '已出库' when '50' then '已完成' else t1.state end as '订单状态',
+case t1.cancel_type when 'none' then '未取消' when 'canceled' then '用户取消' when 'expired' then '过期' when 'closed' then '后台关闭' when 'splited' then '已被分拆(原单关闭)' else t1.cancel_type end as '订单取消标识',
+case t1.payment_state when 'cod' then '货到付款未支付' when 'cash' then '现金(未入账)' when 'collect' then '物流代收' when 'paid' then '已支付' else t1.payment_state end as '支付状态',
+case t1.delivery_type when 'self_now' then '闪送' when 'self_normal' then '同城配送' when 'self_appointment' then '预约送' when 'take_their' then '自提' when 'thrid_party' then '第三方物流' else t1.delivery_type end as '配送方式'
+from oms.oms_order t1 INNER JOIN (select user_id,min(create_timestamp) min_time from oms.oms_order where user_level = '0' and order_amount>0 and order_amount>0 and create_timestamp>='2018-05-29 00:00:00' and create_timestamp<date_format(now(), '%Y-%m-%d 00:00:00') group by user_id) t2 on t1.user_id = t2.user_id and t1.create_timestamp = t2.min_time 
+where t1.create_timestamp>='2018-05-29 00:00:00' and t1.create_timestamp<date_format(now(), '%Y-%m-%d 00:00:00')
+order by t1.create_timestamp, t1.user_id
